@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://bt3lx3hj8gnyl"]
+[gd_scene load_steps=9 format=3 uid="uid://bt3lx3hj8gnyl"]
 
-[ext_resource type="PackedScene" uid="uid://1hmj42u3o1p8" path="res://scenes/player/player.tscn" id="1_nnsk1"]
+[ext_resource type="PackedScene" uid="uid://dneauax3absg0" path="res://scenes/player/player.tscn" id="1_nnsk1"]
+[ext_resource type="PackedScene" uid="uid://d384hax1nqrlj" path="res://scenes/Zombie/aryan.tscn" id="2_rwgxs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_nnsk1"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -13,7 +14,12 @@ sky_material = SubResource("ProceduralSkyMaterial_nnsk1")
 background_mode = 2
 sky = SubResource("Sky_rwgxs")
 tonemap_mode = 2
-glow_enabled = true
+fog_enabled = true
+fog_light_color = Color(0.300243, 0.327753, 0.370995, 1)
+fog_density = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4wyf3"]
+albedo_color = Color(0.188235, 1, 0.403922, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nnsk1"]
 albedo_color = Color(0, 0, 0, 1)
@@ -28,16 +34,15 @@ environment = SubResource("Environment_4wyf3")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866025, -0.25, 0.433013, 0, 0.866026, 0.5, -0.5, 0.433013, -0.75, 0, 0, 0)
+light_energy = 0.5
 shadow_enabled = true
-
-[node name="Player" parent="." instance=ExtResource("1_nnsk1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.24179, 0)
 
 [node name="Ground" type="Node3D" parent="."]
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Ground"]
+material_override = SubResource("StandardMaterial3D_4wyf3")
 use_collision = true
-size = Vector3(50, 0.001, 50)
+size = Vector3(80, 0.001, 80)
 
 [node name="Boxes" type="Node3D" parent="."]
 
@@ -50,3 +55,30 @@ use_collision = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.6401, 0.50281, -10.4955)
 material_override = SubResource("StandardMaterial3D_rwgxs")
 use_collision = true
+
+[node name="Walls" type="Node3D" parent="."]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 40)
+use_collision = true
+size = Vector3(80, 2, 0.1)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -40)
+use_collision = true
+size = Vector3(80, 2, 0.1)
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="Walls"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 40.0219, 1, 0)
+use_collision = true
+size = Vector3(80, 2, 0.1)
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="Walls"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -40, 1, 0)
+use_collision = true
+size = Vector3(80, 2, 0.1)
+
+[node name="Aryan" parent="." instance=ExtResource("2_rwgxs")]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 2.96967)
+
+[node name="Player" parent="." instance=ExtResource("1_nnsk1")]
