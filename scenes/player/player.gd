@@ -60,7 +60,7 @@ func handle_jump() -> void:
 		is_in_air = true
 		current_state = State.JUMP
 
-func handle_sprint() -> void:
+func handle_sprint(delta) -> void:
 	if Input.is_action_just_pressed("Sprint"):
 		is_sprinting = !is_sprinting
 		current_speed = sprint_speed if is_sprinting else speed
@@ -69,7 +69,7 @@ func handle_sprint() -> void:
 	if is_sprinting:
 		current_state = State.RUN
 		animation_player.speed_scale = 1.0
-		
+		head_bob(delta)
 	else:
 		current_state = State.WALK
 		animation_player.speed_scale = 0.95
@@ -91,7 +91,6 @@ func _physics_process(delta: float) -> void:
 	handle_gravity(delta)
 	handle_jump()
 	handle_ads(delta)
-	head_bob(delta)
 	handle_movement(delta)
 	handle_animations()
 	move_and_slide()
@@ -129,7 +128,7 @@ func handle_movement(delta) -> void:
 	
 	# Disable sprinting while aiming
 	if direction and Input.is_action_pressed("Forward") and not is_aiming:
-		handle_sprint()
+		handle_sprint(delta)
 	else:
 		current_speed = speed
 		is_sprinting = false
