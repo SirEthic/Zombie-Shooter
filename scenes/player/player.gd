@@ -1,5 +1,7 @@
 class_name Player
-extends Character
+extends CharacterBody3D
+
+enum State {IDLE, WALK, RUN, JUMP, CROUCHING, CROUCH_IDLE, CROUCH_WALK, AIM, SHOOT}
 
 @export var jump_velocity : float
 @export var sensitivity : float
@@ -15,6 +17,9 @@ extends Character
 @export var air_acceleration : float = 2.0
 @export var air_friction : float = 0.5
 
+
+@export var blend_speed : float = 15.0
+
 var default_fov : float
 var is_aiming : bool = false
 var current_sensitivity : float
@@ -22,30 +27,47 @@ var current_speed
 var is_in_air : bool = false
 var is_sprinting : bool = false
 
-const BOB_FREQ  : float = 2.4
-const BOB_AMP : float = 0.05
-const BOB_SMOOTH : float = 8.0
+const BOB_FREQ = 2.0
+const BOB_AMP = 0.04
 var t_bob : float = 0.0
-var current_bob_amount : float = 0.0
-var bob_offset : Vector3 = Vector3.ZERO
+
+var current_state = State.IDLE
+
+var walk_val = 0
+var run_val = 0
+var aim_val = 0
+var shoot_val = 0
+var jump_val = 0
 
 @onready var camera: Camera3D = $Head/Camera
 @onready var head: Node3D = $Head
 @onready var model: Node3D = $Model
+
+@onready var animation_player: AnimationPlayer = $Model/AnimationPlayer
+@onready var animation_tree: AnimationTree = $Model/AnimationTree
+@onready var anim_playback = animation_tree.get("parameters/playback")
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	current_speed = speed
 	default_fov = camera.fov
 	current_sensitivity = sensitivity
+	
+	animation_tree.active = true
+	animation_player.speed_scale = 1.3
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		# Use current_sensitivity instead of sensitivity
-		head.rotate_y(-event.relative.x * current_sensitivity)
+		# Rotate the ENTIRE player body for left-right (Yaw) movement.
+		# This keeps the camera's pivot point at the center.
+		self.rotate_y(-event.relative.x * sensitivity)
+
+		# Rotate ONLY the camera for up-down (Pitch) movement.
+		camera.rotate_x(-event.relative.y * sensitivity)
+		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-80), deg_to_rad(80))
+
+		# Make sure the visual model matches the head's rotation.
 		model.rotation.y = head.rotation.y + PI
-		camera.rotate_x(-event.relative.y * current_sensitivity)
-		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-40), deg_to_rad(60))
 
 func handle_gravity(delta) -> void:
 	if not is_on_floor():
@@ -54,26 +76,57 @@ func handle_gravity(delta) -> void:
 	elif is_in_air:
 		is_in_air = false
 
+func update_tree() -> void:
+	animation_tree["parameters/Walk/blend_amount"] = walk_val
+	animation_tree["parameters/Run/blend_amount"] = run_val
+	animation_tree["parameters/Aim/blend_amount"] = aim_val
+	
+	animation_tree["parameters/Walk_TimeScale/scale"] =  1.1 # Only 5% faster
+	animation_tree["parameters/Run_TimeScale/scale"] = 1.7
+	animation_tree["parameters/TimeScale/scale"] = 1.0
+
+func handle_animations(delta) -> void:
+	match current_state:
+		State.IDLE:
+			walk_val = lerpf(walk_val, 0, blend_speed * delta)
+			run_val = lerpf(run_val, 0, blend_speed * delta)
+			aim_val = lerpf(aim_val, 0, blend_speed * delta)
+		
+		State.WALK:
+			walk_val = lerpf(walk_val, 1, blend_speed * delta)
+			run_val = lerpf(run_val, 0, blend_speed * delta)
+			aim_val = lerpf(aim_val, 0, blend_speed * delta)
+		
+		State.RUN:
+			walk_val = lerpf(walk_val, 0, blend_speed * delta)
+			run_val = lerpf(run_val, 1, blend_speed * delta)
+			aim_val = lerpf(aim_val, 0, blend_speed * delta)
+		
+		State.AIM:
+			walk_val = lerpf(walk_val, 0, blend_speed * delta)
+			run_val = lerpf(run_val, 0, blend_speed * delta)
+			aim_val = lerpf(aim_val, 1, blend_speed * delta)
+		
+	
+	update_tree()
+	
 func handle_jump() -> void:
 	if Input.is_action_just_pressed("Jump") and is_on_floor():
 		velocity.y = jump_velocity
 		is_in_air = true
-		current_state = State.JUMP
 
-func handle_sprint(delta) -> void:
-	if Input.is_action_just_pressed("Sprint"):
-		is_sprinting = !is_sprinting
-		current_speed = sprint_speed if is_sprinting else speed
-
-	
-	if is_sprinting:
-		current_state = State.RUN
-		animation_player.speed_scale = 1.0
-		head_bob(delta)
+func handle_sprint() -> void:
+	if Input.is_action_pressed("Sprint"):
+		current_speed = sprint_speed
+		is_sprinting = true
 	else:
-		current_state = State.WALK
-		animation_player.speed_scale = 0.95
-	
+		current_speed = speed
+		is_sprinting = false
+
+func handle_shoot() -> void:
+	if Input.is_action_just_pressed("Shoot"):
+		current_state = State.SHOOT
+		animation_tree["parameters/Shoot/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
 
 func handle_ads(delta) -> void:
 	# Hold to ADS
@@ -86,53 +139,48 @@ func handle_ads(delta) -> void:
 	# Adjust sensitivity based on ADS state
 	var target_sensitivity = sensitivity * ads_sensitivity_multiplier if is_aiming else sensitivity
 	current_sensitivity = lerpf(current_sensitivity, target_sensitivity, delta * ads_transition_speed)
-
+	
+	current_state = State.AIM
+	
 func _physics_process(delta: float) -> void:
 	handle_gravity(delta)
+	handle_animations(delta)
 	handle_jump()
 	handle_ads(delta)
 	handle_movement(delta)
-	handle_animations()
+	handle_shoot()
 	move_and_slide()
 
-func head_bob(delta) -> void:
-	# Calculate horizontal velocity for bob amount
-	var horizontal_velocity = Vector2(velocity.x, velocity.z).length()
-	
-	# Normalize bob amount based on movement speed
-	var target_bob = horizontal_velocity / speed
-	target_bob = clamp(target_bob, 0.0, 1.0)
-	
-	# Reduce bob when aiming or in air
-	if is_aiming:
-		target_bob *= 0.3
-	if not is_on_floor():
-		target_bob = 0.0
-	
-	current_bob_amount = lerpf(current_bob_amount, target_bob, delta * BOB_SMOOTH)
-	
-	if current_bob_amount > 0.01:
-		t_bob += delta * BOB_FREQ * horizontal_velocity
-	
-	# Calculate bob offset instead of directly modifying camera position
-	bob_offset = Vector3.ZERO
-	bob_offset.y = sin(t_bob) * BOB_AMP * current_bob_amount
-	bob_offset.x = sin(t_bob * 0.5) * BOB_AMP * 0.5 * current_bob_amount
-	
-	# Apply bob offset smoothly
-	camera.position = camera.position.lerp(bob_offset, delta * 10.0)
+# --- BULLETPROOF HEAD BOB ---
+func head_bob(delta: float):
+	var target_pos = Vector3.ZERO
+	# Only apply bob if on the floor, moving, and not aiming.
+	if is_on_floor() and velocity.length_squared() > 0.1 and not is_aiming:
+		var bob_amp = BOB_AMP * (current_speed / speed) # Scale bob amplitude with speed
+		t_bob += delta * BOB_FREQ * current_speed
+		target_pos.y = sin(t_bob) * bob_amp
+
+	# --- THE FIX ---
+	# Apply the bob effect directly to the camera's local position, not the Head node.
+	camera.position = camera.position.lerp(target_pos, delta * 10.0)
+
 
 func handle_movement(delta) -> void:
 	var input_dir := Input.get_vector("Left", "Right", "Forward", "Back")
-	var direction := (head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	var direction := (self.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
 	# Disable sprinting while aiming
 	if direction and Input.is_action_pressed("Forward") and not is_aiming:
-		handle_sprint(delta)
+		handle_sprint()
 	else:
 		current_speed = speed
 		is_sprinting = false
-
+	
+	if is_sprinting:
+		current_state = State.RUN
+	else:
+		current_state = State.WALK
+	
 	var movement_speed = current_speed * 0.6 if is_aiming else current_speed
 
 	var current_acceleration = acceleration if is_on_floor() else air_acceleration
@@ -153,3 +201,5 @@ func handle_movement(delta) -> void:
 			velocity.z = 0
 		
 		current_state = State.IDLE
+	
+	model.rotation.y = lerp_angle(model.rotation.y, head.rotation.y + PI, delta * 8.0)

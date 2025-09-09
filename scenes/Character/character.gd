@@ -7,7 +7,7 @@ const GRAVITY := 9.8
 
 @onready var animation_player: AnimationPlayer = $Model/AnimationPlayer
 
-enum State {IDLE, WALK, RUN, JUMP, CROUCHING, CROUCH_IDLE, CROUCH_WALK, AIM}
+enum State {IDLE, WALK, RUN, JUMP, CROUCHING, CROUCH_IDLE, CROUCH_WALK, AIM, SHOOT}
 
 var anim_map : Dictionary = {
 	State.IDLE : "Idle",
@@ -18,7 +18,7 @@ var anim_map : Dictionary = {
 	State.CROUCH_IDLE : "Crouch_Idle",
 	State.CROUCH_WALK : "Crouch_Walk",
 	State.AIM : "Aim",
-	
+	State.SHOOT : "Shoot",
 }
 
 var current_state = State.IDLE
