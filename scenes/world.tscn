@@ -81,4 +81,7 @@ size = Vector3(80, 2, 0.1)
 [node name="Aryan" parent="." instance=ExtResource("2_rwgxs")]
 transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 2.96967)
 
+[node name="Aryan2" parent="." instance=ExtResource("2_rwgxs")]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 6.35762, 0, 2.96967)
+
 [node name="Player" parent="." instance=ExtResource("1_nnsk1")]

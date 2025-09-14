@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponResource" load_steps=2 format=3 uid="uid://o2qjgi1efi8t"]
+
+[ext_resource type="Script" uid="uid://bj3owsl37lx0v" path="res://scenes/Weapons/weapon_resource.gd" id="1_fe7pn"]
+
+[resource]
+script = ExtResource("1_fe7pn")
+weapon_name = "Pistol"
+pick_up_animation = "Pistol_Activate"
+idle_animation = "Pistol_Idle"
+shoot_animation = "Pistol_Shoot"
+reload_animation = "Pistol_Reload"
+change_animation = ""
+drop_animation = "Pistol_Deactivate"
+out_of_ammo_animation = "Pistol_Idle"
+melee_animation = ""
+has_ammo = true
+current_ammo = 12
+reserve_ammo = 36
+magazine = 12
+max_ammo = 36
+damage = 20
+melee_damage = 0.0
+auto_fire = false
+Type = 1
+weapon_range = 2000
+can_be_dropped = false
+incremental_reload = false
+metadata/_custom_type_script = "uid://bj3owsl37lx0v"

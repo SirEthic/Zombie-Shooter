@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponResource" load_steps=2 format=3 uid="uid://dptiwln11tcd8"]
+
+[ext_resource type="Script" uid="uid://bj3owsl37lx0v" path="res://scenes/Weapons/weapon_resource.gd" id="1_8e20i"]
+
+[resource]
+script = ExtResource("1_8e20i")
+weapon_name = "AK47"
+pick_up_animation = "AK47_Activate"
+idle_animation = "AK47_Idle"
+shoot_animation = "AK47_Shoot"
+reload_animation = "AK47_Reload"
+change_animation = ""
+drop_animation = "AK47_Deactivate"
+out_of_ammo_animation = "AK47_Idle"
+melee_animation = ""
+has_ammo = true
+current_ammo = 30
+reserve_ammo = 120
+magazine = 30
+max_ammo = 120
+damage = 10
+melee_damage = 0.0
+auto_fire = true
+Type = 1
+weapon_range = 2000
+can_be_dropped = false
+incremental_reload = false
+metadata/_custom_type_script = "uid://bj3owsl37lx0v"

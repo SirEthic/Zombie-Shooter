@@ -41,11 +41,7 @@ var jump_val = 0
 
 @onready var camera: Camera3D = $Head/Camera
 @onready var head: Node3D = $Head
-@onready var model: Node3D = $Model
-
-@onready var animation_player: AnimationPlayer = $Model/AnimationPlayer
-@onready var animation_tree: AnimationTree = $Model/AnimationTree
-@onready var anim_playback = animation_tree.get("parameters/playback")
+@onready var model: Node3D = $Head/Camera/Weapons_Manager/Model
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -53,8 +49,6 @@ func _ready() -> void:
 	default_fov = camera.fov
 	current_sensitivity = sensitivity
 	
-	animation_tree.active = true
-	animation_player.speed_scale = 1.3
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
@@ -64,10 +58,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		# Rotate ONLY the camera for up-down (Pitch) movement.
 		camera.rotate_x(-event.relative.y * sensitivity)
-		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-80), deg_to_rad(80))
+		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-45), deg_to_rad(80))
 
 		# Make sure the visual model matches the head's rotation.
-		model.rotation.y = head.rotation.y + PI
+		model.rotation.y = head.rotation.y
 
 func handle_gravity(delta) -> void:
 	if not is_on_floor():
@@ -75,40 +69,7 @@ func handle_gravity(delta) -> void:
 		is_in_air = true
 	elif is_in_air:
 		is_in_air = false
-
-func update_tree() -> void:
-	animation_tree["parameters/Walk/blend_amount"] = walk_val
-	animation_tree["parameters/Run/blend_amount"] = run_val
-	animation_tree["parameters/Aim/blend_amount"] = aim_val
 	
-	animation_tree["parameters/Walk_TimeScale/scale"] =  1.1 # Only 5% faster
-	animation_tree["parameters/Run_TimeScale/scale"] = 1.7
-	animation_tree["parameters/TimeScale/scale"] = 1.0
-
-func handle_animations(delta) -> void:
-	match current_state:
-		State.IDLE:
-			walk_val = lerpf(walk_val, 0, blend_speed * delta)
-			run_val = lerpf(run_val, 0, blend_speed * delta)
-			aim_val = lerpf(aim_val, 0, blend_speed * delta)
-		
-		State.WALK:
-			walk_val = lerpf(walk_val, 1, blend_speed * delta)
-			run_val = lerpf(run_val, 0, blend_speed * delta)
-			aim_val = lerpf(aim_val, 0, blend_speed * delta)
-		
-		State.RUN:
-			walk_val = lerpf(walk_val, 0, blend_speed * delta)
-			run_val = lerpf(run_val, 1, blend_speed * delta)
-			aim_val = lerpf(aim_val, 0, blend_speed * delta)
-		
-		State.AIM:
-			walk_val = lerpf(walk_val, 0, blend_speed * delta)
-			run_val = lerpf(run_val, 0, blend_speed * delta)
-			aim_val = lerpf(aim_val, 1, blend_speed * delta)
-		
-	
-	update_tree()
 	
 func handle_jump() -> void:
 	if Input.is_action_just_pressed("Jump") and is_on_floor():
@@ -122,11 +83,6 @@ func handle_sprint() -> void:
 	else:
 		current_speed = speed
 		is_sprinting = false
-
-func handle_shoot() -> void:
-	if Input.is_action_just_pressed("Shoot"):
-		current_state = State.SHOOT
-		animation_tree["parameters/Shoot/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
 
 func handle_ads(delta) -> void:
 	# Hold to ADS
@@ -144,11 +100,10 @@ func handle_ads(delta) -> void:
 	
 func _physics_process(delta: float) -> void:
 	handle_gravity(delta)
-	handle_animations(delta)
 	handle_jump()
 	handle_ads(delta)
 	handle_movement(delta)
-	handle_shoot()
+	head_bob(delta)
 	move_and_slide()
 
 # --- BULLETPROOF HEAD BOB ---
@@ -202,4 +157,4 @@ func handle_movement(delta) -> void:
 		
 		current_state = State.IDLE
 	
-	model.rotation.y = lerp_angle(model.rotation.y, head.rotation.y + PI, delta * 8.0)
+	#model.rotation.y = lerp_angle(model.rotation.y, head.rotation.y + PI, delta * 8.0)

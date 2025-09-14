@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponResource" load_steps=2 format=3 uid="uid://cpy2wvbpatl22"]
+
+[ext_resource type="Script" uid="uid://bj3owsl37lx0v" path="res://scenes/Weapons/weapon_resource.gd" id="1_2s8gu"]
+
+[resource]
+script = ExtResource("1_2s8gu")
+weapon_name = "Rifle"
+pick_up_animation = "Rifle_Activate"
+idle_animation = "Rifle_Idle"
+shoot_animation = "Rifle_Shoot"
+reload_animation = "Rifle_Reload"
+change_animation = ""
+drop_animation = "Rifle_Deactivate"
+out_of_ammo_animation = "Rifle_Idle"
+melee_animation = ""
+has_ammo = true
+current_ammo = 30
+reserve_ammo = 120
+magazine = 30
+max_ammo = 120
+damage = 50
+melee_damage = 0.0
+auto_fire = true
+weapon_range = 2000
+Type = 1
+can_be_dropped = false
+incremental_reload = false
+metadata/_custom_type_script = "uid://bj3owsl37lx0v"

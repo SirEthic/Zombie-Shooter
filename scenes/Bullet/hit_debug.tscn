@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://dguqnsdowqt3w"]
+
+[ext_resource type="Texture2D" uid="uid://uidicgaojgdi" path="res://assets/HUD ASSETS/crosshair046.png" id="1_x6bm1"]
+[ext_resource type="Script" uid="uid://bpptcrya1upvc" path="res://scenes/Bullet/hit_debug.gd" id="2_uaapj"]
+
+[node name="Node3D" type="Sprite3D"]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 0)
+modulate = Color(1, 0, 0, 1)
+billboard = 2
+texture = ExtResource("1_x6bm1")
+script = ExtResource("2_uaapj")
+
+[node name="Timer" type="Timer" parent="."]
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
